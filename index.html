@@ -110,7 +110,7 @@ header{background:#fff;position:sticky;top:0;z-index:5;border-bottom:1px solid v
   <p class="muted">Pesquise receitas públicas do TheMealDB. Confira a fonte original antes de preparar.</p>
   <form id="internetSearchForm" class="community-form">
     <label class="full">O que você quer cozinhar?
-      <input id="internetSearchInput" type="search" required maxlength="100" placeholder="Ex.: chicken, pasta, cake">
+      <input id="internetSearchInput" type="search" required maxlength="100" placeholder="Ex.: bolo de cenoura, frango, macarrão">
     </label>
     <div class="full"><button type="submit" id="internetSearchButton">Buscar na internet</button>
       <div id="internetSearchStatus" role="status" aria-live="polite">Digite o nome de um prato para procurar receitas externas.</div>
@@ -1033,6 +1033,17 @@ document.getElementById("communityForm").addEventListener("submit", async event 
 
 
 // Receitas pesquisadas na internet: fonte externa TheMealDB.
+// A fonte é principalmente em inglês; este mapa ajuda a converter buscas comuns em português.
+const PT_TO_EN_RECIPE_TERMS = {
+  'bolo de cenoura':'carrot cake','cenoura':'carrot','bolo de chocolate':'chocolate cake','bolo':'cake','frango':'chicken','frango assado':'roast chicken','frango frito':'fried chicken','carne':'beef','carne moida':'minced beef','carne moída':'minced beef','porco':'pork','peixe':'fish','bacalhau':'cod','camarao':'shrimp','camarão':'shrimp','arroz':'rice','feijao':'beans','feijão':'beans','macarrao':'pasta','macarrão':'pasta','massa':'pasta','lasanha':'lasagna','pizza':'pizza','hamburguer':'burger','hambúrguer':'burger','sanduiche':'sandwich','sanduíche':'sandwich','ovo':'egg','omelete':'omelette','batata':'potato','batata frita':'french fries','sopa':'soup','salada':'salad','pao':'bread','pão':'bread','queijo':'cheese','doce':'dessert','sobremesa':'dessert','pudim':'pudding','brigadeiro':'chocolate truffle','panqueca':'pancake','torta de maca':'apple pie','torta de maçã':'apple pie','bolo de fuba':'cornmeal cake','bolo de fubá':'cornmeal cake','salsicha':'sausage','enroladinho de salsicha':'sausage roll','mussarela':'mozzarella','morango':'strawberry','limão':'lemon','limao':'lemon','milho':'corn','abobora':'pumpkin','abóbora':'pumpkin','coco':'coconut','leite':'milk','aveia':'oat'
+};
+function translateRecipeQuery(query){
+  const clean=query.trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const exact=Object.entries(PT_TO_EN_RECIPE_TERMS).find(([pt])=>pt.normalize('NFD').replace(/[\u0300-\u036f]/g,'')===clean);
+  if(exact)return exact[1];
+  const words=clean.split(/\s+/).map(w=>{const entry=Object.entries(PT_TO_EN_RECIPE_TERMS).find(([pt])=>pt.normalize('NFD').replace(/[\u0300-\u036f]/g,'')===w);return entry?entry[1]:w;});
+  return words.join(' ');
+}
 const externalSearchForm = document.getElementById('internetSearchForm');
 const externalSearchInput = document.getElementById('internetSearchInput');
 const externalSearchStatus = document.getElementById('internetSearchStatus');
@@ -1071,10 +1082,11 @@ externalSearchForm.addEventListener('submit',async event=>{
   event.preventDefault(); const query=externalSearchInput.value.trim(); if(!query)return;
   const button=document.getElementById('internetSearchButton'); button.disabled=true; externalRecipeResults.innerHTML=''; externalSearchStatus.textContent='Pesquisando receitas externas…';
   try{
-    const response=await fetch('https://www.themealdb.com/api/json/v1/1/search.php?s='+encodeURIComponent(query));
+    const translatedQuery=translateRecipeQuery(query);
+    const response=await fetch('https://www.themealdb.com/api/json/v1/1/search.php?s='+encodeURIComponent(translatedQuery));
     if(!response.ok)throw new Error('HTTP '+response.status);
     const data=await response.json(); const meals=Array.isArray(data.meals)?data.meals:[];
-    if(!meals.length){externalSearchStatus.textContent='Não encontramos resultados com esse nome. Tente pesquisar em inglês ou usar um nome de prato mais curto.';return;}
+    if(!meals.length){externalSearchStatus.textContent='Não encontramos esse prato nessa fonte. Tente um nome mais simples (ex.: frango, bolo, peixe). A fonte externa tem mais receitas internacionais.';return;}
     window.__externalMealResults=meals; renderExternalResults(meals); externalSearchStatus.textContent=meals.length+' receita(s) encontrada(s).';
   }catch(error){console.error('External recipe search error:',error);externalSearchStatus.textContent='Não foi possível consultar a fonte externa agora. Verifique a internet e tente novamente.';}
   finally{button.disabled=false;}
