@@ -32,6 +32,21 @@ header{background:#fff;position:sticky;top:0;z-index:5;border-bottom:1px solid v
 .glossary summary{font-weight:800;cursor:pointer}.glossary p{margin:8px 0}
 @media(max-width:600px){.helper-controls{grid-template-columns:1fr}.helper-box{padding:13px}}
 
+
+.site-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}
+.tool-card{background:var(--card,#fff);border:1px solid var(--line);border-radius:15px;padding:14px;min-width:0}
+.tool-card h3{margin:0 0 6px;font-size:1rem}.tool-card p{font-size:.9rem;margin:0 0 10px;color:var(--muted)}
+.tool-card input,.tool-card select{box-sizing:border-box;width:100%;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:inherit;margin:4px 0}
+.tool-card button,.secondary-action{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:var(--green);color:#fff;font-weight:750;cursor:pointer;margin:4px 3px 0 0}
+.tool-output{margin-top:9px;padding:10px;border-radius:9px;background:var(--soft,#f4f6f2);font-size:.92rem;white-space:pre-wrap}
+.toast-msg{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:10001;background:#202820;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 5px 20px #0002;max-width:90vw}
+.rating-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:10px 0}
+.rating-row button{border:1px solid var(--line);border-radius:8px;background:transparent;padding:7px 10px}
+.rating-row button.selected{background:#fff2bd;border-color:#e3bd4c}
+.recipe-note{width:100%;box-sizing:border-box;min-height:72px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;color:inherit}
+.progress-wrap{height:8px;border-radius:20px;background:#e8e8e8;overflow:hidden;margin:7px 0}.progress-wrap span{display:block;height:100%;width:0;background:var(--green);transition:width .2s}
+@media(max-width:720px){.site-tools{grid-template-columns:1fr}.tool-card{padding:13px}}
+
 </style>
 </head>
 <body>
@@ -58,6 +73,23 @@ header{background:#fff;position:sticky;top:0;z-index:5;border-bottom:1px solid v
   </div>
   <button type="button" id="helperFind">Encontrar receitas</button>
   <p class="muted" style="margin:8px 0 0">A busca usa os ingredientes digitados para encontrar receitas que tenham pelo menos um deles. Ao abrir uma receita, ajuste as porções no botão + ou −.</p>
+</section>
+
+
+<section class="site-tools" aria-label="Ferramentas extras">
+ <div class="tool-card"><h3>🧮 Conversor de medidas</h3><p>Conversões de volume. Gramas dependem do ingrediente.</p>
+ <label for="convertValue">Quantidade</label><input id="convertValue" type="number" min="0" step="any" value="1">
+ <label for="convertFrom">De</label><select id="convertFrom"><option value="cup">xícara (240 ml)</option><option value="tbsp">colher de sopa (15 ml)</option><option value="tsp">colher de chá (5 ml)</option><option value="ml">mililitros</option><option value="l">litros</option><option value="g">gramas</option><option value="kg">quilogramas</option></select>
+ <label for="convertTo">Para</label><select id="convertTo"><option value="ml">mililitros</option><option value="l">litros</option><option value="cup">xícaras (240 ml)</option><option value="tbsp">colheres de sopa</option><option value="tsp">colheres de chá</option><option value="g">gramas</option><option value="kg">quilogramas</option></select>
+ <button type="button" id="convertBtn">Converter</button><div id="convertResult" class="tool-output" aria-live="polite">Escolha as medidas e toque em Converter.</div></div>
+ <div class="tool-card"><h3>📅 Planejador de refeições</h3><p>Monte seu cardápio e copie o planejamento.</p>
+ <label for="planDay">Dia</label><select id="planDay"><option>Segunda</option><option>Terça</option><option>Quarta</option><option>Quinta</option><option>Sexta</option><option>Sábado</option><option>Domingo</option></select>
+ <label for="planMeal">Refeição</label><select id="planMeal"><option>Almoço</option><option>Jantar</option><option>Café da manhã</option><option>Lanche</option></select>
+ <label for="planDish">Prato</label><input id="planDish" placeholder="Ex.: arroz, feijão e frango">
+ <button type="button" id="planAdd">Adicionar ao cardápio</button><button type="button" id="planCopy" class="secondary-action">Copiar cardápio</button><div id="planOutput" class="tool-output" aria-live="polite">Seu cardápio aparecerá aqui.</div></div>
+ <div class="tool-card"><h3>🧾 Minha lista rápida</h3><p>Adicione itens extras e copie a lista para o mercado.</p>
+ <label for="quickItem">Item</label><input id="quickItem" placeholder="Ex.: 1 pacote de farinha">
+ <button type="button" id="quickAdd">Adicionar item</button><button type="button" id="quickCopy" class="secondary-action">Copiar lista</button><div id="quickOutput" class="tool-output" aria-live="polite">Nenhum item adicionado.</div></div>
 </section>
 
 <section><div class="section-head"><div><h2>Explore por categoria</h2><div class="muted">Escolha o que deu vontade de fazer</div></div></div><div class="quick-filters" id="quickFilters"><button class="quick-filter" data-filter="quick">⚡ Até 30 min</button><button class="quick-filter" data-filter="easy">🙂 Fácil</button><button class="quick-filter" data-filter="nooven">🔥 Sem forno</button><button class="quick-filter" data-filter="snack">🥟 Lanches e salgados</button><button class="quick-filter" data-filter="cheap">🪙 Econômicas</button></div><div class="categories" id="categories"></div></section>
@@ -208,7 +240,7 @@ function formatIngredient(name, n, unit, factor){
   return `${amount(qty)} ${name}${u && u!=="unidades" && u!=="unidade" ? " ("+u+")" : ""}`;
 }
 
-function openRecipe(id){currentRecipe=recipes.find(r=>r.id===id);servingsNow=desiredServings||currentRecipe.servings;renderModal()}
+function openRecipe(id){currentRecipe=recipes.find(r=>r.id===id);servingsNow=desiredServings||currentRecipe.servings;renderModal();loadRecipeExtras()}
 function renderModal(){if(!currentRecipe)return;const r=currentRecipe,factor=servingsNow/r.servings;document.getElementById("dialogContent").innerHTML=`<div style="position:relative"><img class="cover" src="${r.img}" alt="${esc(r.name)}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=900&q=80'"><button class="close" id="closeModal" aria-label="Fechar">×</button></div><div class="details"><div class="tag">${esc(r.cat)} · ⏱ ${r.time} min · ${esc(r.difficulty)}</div><h2>${esc(r.name)}</h2><p class="muted">${esc(r.desc)}</p><div class="detail-actions"><button class="pill" id="modalFav">${favorites.has(r.id)?"❤️ Salvo nos favoritos":"♡ Salvar favorito"}</button><button class="pill" id="shareBtn">↗ Compartilhar</button><button class="pill" id="printBtn">🖨 Imprimir</button><button class="pill" id="shoppingBtn">🛒 Lista de compras</button></div><div class="portion"><strong>Porções:</strong><button id="minusPort" aria-label="Diminuir porções">−</button><strong>${servingsNow}</strong><button id="plusPort" aria-label="Aumentar porções">+</button><span class="muted">pessoas/unidades</span></div><h3>🧺 Ingredientes</h3><p class="muted">Marque cada item conforme separar na bancada.</p><ul class="ingredients-check">${r.ingredients.map(([name,n,unit],i)=>`<li><label><input type="checkbox" data-ingredient="${i}"><span>${esc(formatIngredient(name,n,unit,factor))}</span></label></li>`).join("")}</ul><h3>👩‍🍳 Modo de preparo</h3><div class="tip-box">💡 <strong>Antes de começar:</strong> lave as mãos, separe os utensílios e leia todas as etapas. Se for usar forno ou óleo quente, tome cuidado com queimaduras.</div><div class="cook-tools"><button type="button" id="resetChecks">↻ Desmarcar ingredientes</button><button type="button" id="showAllSteps">📋 Ver dicas de preparo</button></div>
 <div class="cook-tools">
   <button type="button" id="cookModeBtn">👨‍🍳 Ativar modo cozinheiro</button>
@@ -284,7 +316,41 @@ document.getElementById("helperFind").onclick=()=>{
   quickFilter=(t==="30"?"quick":t==="60"?"under60":"");
   document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x.dataset.filter===quickFilter));
   onlyFavorites=false;document.getElementById("favoritesToggle").classList.remove("active");
-  selectedCategory="Todas";renderCategories();renderRecipes();
+  selectedCategory="Todas";
+const mealPlan=[],quickItems=[];
+function safeText(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function showToast(msg){const old=document.querySelector(".toast-msg");if(old)old.remove();const d=document.createElement("div");d.className="toast-msg";d.setAttribute("role","status");d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2500)}
+async function copyTextSafe(value){try{await navigator.clipboard.writeText(value);showToast("Copiado!")}catch(e){const ta=document.createElement("textarea");ta.value=value;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand("copy")}catch(_){}ta.remove();showToast(ok?"Copiado!":"Não foi possível copiar automaticamente.")}}
+const unitMl={ml:1,l:1000,cup:240,tbsp:15,tsp:5};
+document.getElementById("convertBtn").addEventListener("click",()=>{
+ const n=Number(document.getElementById("convertValue").value),a=document.getElementById("convertFrom").value,b=document.getElementById("convertTo").value,out=document.getElementById("convertResult");
+ if(!Number.isFinite(n)||n<0){out.textContent="Digite uma quantidade válida.";return}
+ if(a==="g"||a==="kg"||b==="g"||b==="kg"){
+  if(a==="g"&&b==="kg")out.textContent=(n/1000).toLocaleString("pt-BR")+" kg";
+  else if(a==="kg"&&b==="g")out.textContent=(n*1000).toLocaleString("pt-BR")+" g";
+  else out.textContent="Peso e volume não são equivalentes para todos os ingredientes. Use uma balança ou conversão específica.";
+  return;
+ }
+ out.textContent=(n*unitMl[a]/unitMl[b]).toLocaleString("pt-BR",{maximumFractionDigits:3})+" "+({ml:"ml",l:"L",cup:"xícara(s)",tbsp:"colher(es) de sopa",tsp:"colher(es) de chá"}[b]);
+});
+function drawPlan(){document.getElementById("planOutput").innerHTML=mealPlan.length?mealPlan.map((x,i)=>`<div>${safeText(x.day)} — ${safeText(x.meal)}: ${safeText(x.dish)} <button type="button" data-remove-plan="${i}" class="secondary-action">Remover</button></div>`).join(""):"Seu cardápio aparecerá aqui."}
+document.getElementById("planAdd").addEventListener("click",()=>{const dish=document.getElementById("planDish").value.trim();if(!dish){showToast("Digite o nome de um prato.");return}mealPlan.push({day:document.getElementById("planDay").value,meal:document.getElementById("planMeal").value,dish});document.getElementById("planDish").value="";drawPlan()});
+document.getElementById("planOutput").addEventListener("click",e=>{const b=e.target.closest("[data-remove-plan]");if(b){mealPlan.splice(Number(b.dataset.removePlan),1);drawPlan()}});
+document.getElementById("planCopy").addEventListener("click",()=>copyTextSafe(mealPlan.map(x=>`${x.day} — ${x.meal}: ${x.dish}`).join("\n")||"Cardápio vazio"));
+function drawQuick(){document.getElementById("quickOutput").textContent=quickItems.length?quickItems.map((x,i)=>`${i+1}. ${x}`).join("\n"):"Nenhum item adicionado."}
+document.getElementById("quickAdd").addEventListener("click",()=>{const v=document.getElementById("quickItem").value.trim();if(!v){showToast("Digite um item.");return}quickItems.push(v);document.getElementById("quickItem").value="";drawQuick()});
+document.getElementById("quickCopy").addEventListener("click",()=>copyTextSafe(quickItems.join("\n")||"Lista vazia"));
+function recipeKey(kind){return currentRecipe?"receitasTudo_"+kind+"_"+currentRecipe.id:null}
+function loadRecipeExtras(){if(!currentRecipe)return;const rate=localStorage.getItem(recipeKey("rating"));const status=document.getElementById("ratingStatus");if(status)status.textContent=rate?rate+" de 5 estrelas":"Ainda não avaliada";document.querySelectorAll("[data-rating]").forEach(b=>b.classList.toggle("selected",Number(b.dataset.rating)===Number(rate)));const note=document.getElementById("recipePersonalNote");if(note)note.value=localStorage.getItem(recipeKey("note"))||""}
+document.addEventListener("click",e=>{
+ const rateBtn=e.target.closest("[data-rating]");
+ if(rateBtn&&currentRecipe){localStorage.setItem(recipeKey("rating"),rateBtn.dataset.rating);loadRecipeExtras()}
+ const saveBtn=e.target.closest("#saveRecipeNote");
+ if(saveBtn&&currentRecipe){localStorage.setItem(recipeKey("note"),document.getElementById("recipePersonalNote").value);showToast("Anotação salva neste aparelho.")}
+});
+
+document.addEventListener("change",e=>{if(e.target.matches("#stepsList input[type=checkbox]")){const checks=[...document.querySelectorAll("#stepsList input[type=checkbox]")],done=checks.filter(x=>x.checked).length;const bar=document.getElementById("recipeProgress");if(bar)bar.style.width=(checks.length?100*done/checks.length:0)+"%";}});
+renderCategories();renderRecipes();
   document.getElementById("listTitle").textContent=ing?"Receitas com o que você tem em casa":"Receitas para o seu tempo disponível";
   document.getElementById("recipeGrid").scrollIntoView({behavior:"smooth",block:"start"});
 };
