@@ -17,6 +17,21 @@ header{background:#fff;position:sticky;top:0;z-index:5;border-bottom:1px solid v
 .modal{position:fixed;inset:0;z-index:20;background:#1e1713a8;display:flex;align-items:flex-end;justify-content:center;padding:14px}.dialog{background:var(--cream);border-radius:22px 22px 12px 12px;width:min(760px,100%);max-height:92vh;overflow:auto;position:relative}.dialog img.cover{width:100%;height:240px;object-fit:cover;display:block}.close{position:absolute;right:12px;top:12px;border:0;background:#fff;border-radius:50%;width:40px;height:40px;font-size:1.3rem}.details{padding:20px}.details h2{margin:5px 0 8px;font-size:1.8rem}.detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.details h3{margin-bottom:8px}.details ul,.details ol{padding-left:23px;line-height:1.75}.details li{margin:0 0 10px}.details ul li::marker{color:var(--green)}.details ol li::marker{font-weight:800;color:var(--orange)}.details ul{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 14px 14px 36px}.details ol{padding-top:4px}.details p{line-height:1.6}@media print{header,.hero,.categories,.section-head,.recipe-card,.detail-actions,.portion,.close,footer{display:none!important}.modal{position:static;background:#fff;padding:0;display:block!important}.dialog{max-height:none;overflow:visible;width:100%;border:0}.dialog img.cover{height:150px}.details{padding:0}.notice{border:1px solid #ddd}}.portion{display:flex;align-items:center;gap:10px;margin:12px 0}.portion button{border:1px solid var(--line);background:#fff;border-radius:8px;width:36px;height:36px;font-size:1.2rem}.notice{background:#fff0d8;padding:12px;border-radius:10px;font-size:.85rem;color:#694a1c}.cook-tools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.cook-tools button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 11px;font-weight:700}.cook-progress{height:7px;background:#eee3da;border-radius:99px;overflow:hidden;margin:8px 0 14px}.cook-progress span{display:block;height:100%;width:0;background:var(--green);transition:width .2s}.details .ingredients-check{list-style:none;padding:12px;margin:0}.details .ingredients-check li{margin:0 0 8px}.ingredients-check label{display:flex;gap:9px;align-items:flex-start}.ingredients-check input{margin-top:5px;accent-color:var(--green);width:18px;height:18px;flex-shrink:0}.ingredients-check li.checked{text-decoration:line-through;color:var(--muted)}.tip-box{background:#edf5ed;border-radius:12px;padding:12px;color:#2e5838;margin:12px 0;font-size:.92rem}
 @media(max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.photo{height:135px}.card-body{padding:11px}.hero-box{padding:24px 18px;min-height:265px}.top .brand{font-size:1.05rem}.top-actions .pill{padding:8px 10px;font-size:.85rem}}
 @media(max-width:420px){.grid{grid-template-columns:1fr 1fr}.photo{height:120px}.card-body h3{font-size:.95rem}.card-body p{font-size:.82rem}.meta{font-size:.74rem}.top-actions .pill{padding:7px 9px}}
+
+/* Recursos novos: assistente, modo cozinheiro e timer */
+.helper-box{margin:8px 0 22px;background:#edf5ed;border:1px solid #d6e7d7;border-radius:18px;padding:16px}
+.helper-box h2{margin:0 0 6px;font-size:1.25rem}.helper-controls{display:grid;grid-template-columns:2fr 1fr 1fr;gap:9px;margin-top:12px}
+.helper-controls input,.helper-controls select{min-width:0;width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.helper-box button{margin-top:10px;border:0;border-radius:10px;background:var(--green);color:#fff;padding:11px 14px;font-weight:800}
+.timer-panel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0}
+.timer-display{font-size:1.35rem;font-weight:900;font-variant-numeric:tabular-nums;min-width:72px}
+.timer-panel button,.cook-tools button.active{background:var(--green);color:#fff;border-color:var(--green)}
+.cook-mode .details{font-size:1.08rem}.cook-mode #stepsList li{padding:12px 10px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:1.08rem}
+.cook-mode #stepsList li:has(input:checked){opacity:.6;background:#edf5ed}
+.glossary{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.glossary summary{font-weight:800;cursor:pointer}.glossary p{margin:8px 0}
+@media(max-width:600px){.helper-controls{grid-template-columns:1fr}.helper-box{padding:13px}}
+
 </style>
 </head>
 <body>
@@ -28,6 +43,23 @@ header{background:#fff;position:sticky;top:0;z-index:5;border-bottom:1px solid v
   <div class="search pantry-search"><input id="pantryInput" type="search" placeholder="Ex.: ovo, queijo, frango..."><button id="pantryBtn" type="button">Encontrar</button></div>
   <p>Digite ingredientes separados por vírgula para encontrar receitas que combinem.</p>
 </div></div></section>
+
+<section class="helper-box" aria-label="Assistente de receitas">
+  <h2>🧑‍🍳 Me ajuda a cozinhar?</h2>
+  <div class="muted">Conte o que tem em casa e quanto tempo você tem. Vamos encontrar uma ideia!</div>
+  <div class="helper-controls">
+    <input id="helperIngredients" type="text" placeholder="Ingredientes: ovo, queijo, frango">
+    <select id="helperTime" aria-label="Tempo disponível">
+      <option value="any">Qualquer tempo</option><option value="30">Até 30 minutos</option><option value="60">Até 1 hora</option>
+    </select>
+    <select id="helperPeople" aria-label="Quantidade de pessoas">
+      <option value="1">1 pessoa</option><option value="2" selected>2 pessoas</option><option value="3">3 pessoas</option><option value="4">4 pessoas</option><option value="5">5 pessoas</option><option value="6">6 pessoas</option>
+    </select>
+  </div>
+  <button type="button" id="helperFind">Encontrar receitas</button>
+  <p class="muted" style="margin:8px 0 0">A busca usa os ingredientes digitados para encontrar receitas que tenham pelo menos um deles. Ao abrir uma receita, ajuste as porções no botão + ou −.</p>
+</section>
+
 <section><div class="section-head"><div><h2>Explore por categoria</h2><div class="muted">Escolha o que deu vontade de fazer</div></div></div><div class="quick-filters" id="quickFilters"><button class="quick-filter" data-filter="quick">⚡ Até 30 min</button><button class="quick-filter" data-filter="easy">🙂 Fácil</button><button class="quick-filter" data-filter="nooven">🔥 Sem forno</button><button class="quick-filter" data-filter="snack">🥟 Lanches e salgados</button><button class="quick-filter" data-filter="cheap">🪙 Econômicas</button></div><div class="categories" id="categories"></div></section>
 <section><div class="section-head"><div><h2 id="listTitle">Receitas para experimentar</h2><div class="muted" id="resultCount"></div></div></div><div class="grid" id="recipeGrid"></div></section>
 <footer>Feito com carinho para quem ama comer bem. ❤️<br>As imagens precisam de internet. As receitas favoritas ficam salvas neste aparelho. Use a lista de ingredientes para conferir tudo antes de começar.</footer>
@@ -137,7 +169,7 @@ const pantryItems=pantryRaw.split(",").map(s=>s.trim()).filter(Boolean);
 let list=recipes.filter(r=>{
  const text=(r.name+" "+r.cat+" "+r.desc+" "+r.ingredients.map(x=>x[0]).join(" ")).toLocaleLowerCase("pt-BR");
  const base=(selectedCategory==="Todas"||r.cat===selectedCategory)&&(!onlyFavorites||favorites.has(r.id))&&(!q||text.includes(q));
- const quickOk=!quickFilter||(quickFilter==="quick"&&r.time<=30)||(quickFilter==="easy"&&r.difficulty==="Fácil")||(quickFilter==="nooven"&&!/forno|assar|assadeira/i.test(r.steps.join(" ")))||(quickFilter==="snack"&&r.cat==="Lanches e salgados")||(quickFilter==="cheap"&&r.time<=30&&r.ingredients.length<=6);
+ const quickOk=!quickFilter||(quickFilter==="quick"&&r.time<=30)||(quickFilter==="under60"&&r.time<=60)||(quickFilter==="easy"&&r.difficulty==="Fácil")||(quickFilter==="nooven"&&!/forno|assar|assadeira/i.test(r.steps.join(" ")))||(quickFilter==="snack"&&r.cat==="Lanches e salgados")||(quickFilter==="cheap"&&r.time<=30&&r.ingredients.length<=6);
  const pantryOk=!pantryItems.length||pantryItems.some(item=>text.includes(item));
  return base&&quickOk&&pantryOk;
 });document.getElementById("listTitle").textContent=onlyFavorites?"Suas receitas favoritas":pantryItems.length?"Receitas com o que você tem em casa":quickFilter?"Receitas filtradas":q?"Resultados da pesquisa":selectedCategory==="Todas"?"Receitas para experimentar":selectedCategory;document.getElementById("resultCount").textContent=`${list.length} receita${list.length===1?"":"s"} encontrada${list.length===1?"":"s"}`;grid.innerHTML=list.length?list.map(r=>`<article class="recipe-card"><div class="photo"><img loading="lazy" src="${r.img}" alt="${esc(r.name)}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=900&q=80'"><button class="fav" aria-label="Favoritar ${esc(r.name)}" data-fav="${r.id}">${favorites.has(r.id)?"❤️":"♡"}</button></div><div class="card-body"><div class="tag">${esc(r.cat)}</div><h3>${esc(r.name)}</h3><p>${esc(r.desc)}</p><div class="meta"><span>⏱ ${r.time} min</span><span>👩‍🍳 ${esc(r.difficulty)}</span><span>🍽️ ${r.servings} porções</span></div><button class="open-recipe" data-open="${r.id}">Ver receita →</button></div></article>`).join(""):`<div class="empty">Não encontramos receitas com esses filtros.<br>Tente outro nome ou escolha “Todas”.</div>`;grid.querySelectorAll("[data-fav]").forEach(b=>b.onclick=()=>toggleFav(Number(b.dataset.fav)));grid.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openRecipe(Number(b.dataset.open)))}
@@ -176,20 +208,87 @@ function formatIngredient(name, n, unit, factor){
   return `${amount(qty)} ${name}${u && u!=="unidades" && u!=="unidade" ? " ("+u+")" : ""}`;
 }
 
-function openRecipe(id){currentRecipe=recipes.find(r=>r.id===id);servingsNow=currentRecipe.servings;renderModal()}
-function renderModal(){if(!currentRecipe)return;const r=currentRecipe,factor=servingsNow/r.servings;document.getElementById("dialogContent").innerHTML=`<div style="position:relative"><img class="cover" src="${r.img}" alt="${esc(r.name)}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=900&q=80'"><button class="close" id="closeModal" aria-label="Fechar">×</button></div><div class="details"><div class="tag">${esc(r.cat)} · ⏱ ${r.time} min · ${esc(r.difficulty)}</div><h2>${esc(r.name)}</h2><p class="muted">${esc(r.desc)}</p><div class="detail-actions"><button class="pill" id="modalFav">${favorites.has(r.id)?"❤️ Salvo nos favoritos":"♡ Salvar favorito"}</button><button class="pill" id="shareBtn">↗ Compartilhar</button><button class="pill" id="printBtn">🖨 Imprimir</button><button class="pill" id="shoppingBtn">🛒 Lista de compras</button></div><div class="portion"><strong>Porções:</strong><button id="minusPort" aria-label="Diminuir porções">−</button><strong>${servingsNow}</strong><button id="plusPort" aria-label="Aumentar porções">+</button><span class="muted">pessoas/unidades</span></div><h3>🧺 Ingredientes</h3><p class="muted">Marque cada item conforme separar na bancada.</p><ul class="ingredients-check">${r.ingredients.map(([name,n,unit],i)=>`<li><label><input type="checkbox" data-ingredient="${i}"><span>${esc(formatIngredient(name,n,unit,factor))}</span></label></li>`).join("")}</ul><h3>👩‍🍳 Modo de preparo</h3><div class="tip-box">💡 <strong>Antes de começar:</strong> lave as mãos, separe os utensílios e leia todas as etapas. Se for usar forno ou óleo quente, tome cuidado com queimaduras.</div><div class="cook-tools"><button type="button" id="resetChecks">↻ Desmarcar ingredientes</button><button type="button" id="showAllSteps">📋 Ver dicas de preparo</button></div><div class="cook-progress" aria-label="Progresso do preparo"><span id="stepProgress"></span></div><ol id="stepsList">${r.steps.map((s,i)=>`<li><label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" data-step="${i}" style="margin-top:5px;accent-color:var(--green);width:18px;height:18px;flex-shrink:0"><span>${esc(s)}</span></label></li>`).join("")}</ol><div class="notice"><strong>📏 Sobre as medidas:</strong> quando possível, mostramos gramas (g), quilos (kg), mililitros (ml) e litros (L). Conversões de xícaras e colheres são aproximadas, porque o peso muda conforme o ingrediente. Para maior precisão, use uma balança culinária. <br><br><strong>👨‍🍳 Dica:</strong> leia todas as etapas antes de começar, separe os ingredientes e confira o ponto durante o preparo.</div></div>`;document.getElementById("recipeModal").classList.remove("hidden");document.getElementById("closeModal").onclick=closeModal;document.getElementById("modalFav").onclick=()=>toggleFav(r.id);document.getElementById("minusPort").onclick=()=>{servingsNow=Math.max(1,servingsNow-1);renderModal()};document.getElementById("plusPort").onclick=()=>{servingsNow=Math.min(100,servingsNow+1);renderModal()};document.getElementById("shareBtn").onclick=()=>{const txt=`${r.name}\n\nIngredientes:\n${r.ingredients.map(([n,a,u])=>`- ${formatIngredient(n,a,u,factor)}`).join("\n")}\n\nModo de preparo:\n${r.steps.map((s,i)=>`${i+1}. ${s}`).join("\n")}`;if(navigator.share)navigator.share({title:r.name,text:txt}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>alert("Receita copiada para compartilhar!"));else alert(txt)};document.getElementById("printBtn").onclick=()=>window.print();
+function openRecipe(id){currentRecipe=recipes.find(r=>r.id===id);servingsNow=desiredServings||currentRecipe.servings;renderModal()}
+function renderModal(){if(!currentRecipe)return;const r=currentRecipe,factor=servingsNow/r.servings;document.getElementById("dialogContent").innerHTML=`<div style="position:relative"><img class="cover" src="${r.img}" alt="${esc(r.name)}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=900&q=80'"><button class="close" id="closeModal" aria-label="Fechar">×</button></div><div class="details"><div class="tag">${esc(r.cat)} · ⏱ ${r.time} min · ${esc(r.difficulty)}</div><h2>${esc(r.name)}</h2><p class="muted">${esc(r.desc)}</p><div class="detail-actions"><button class="pill" id="modalFav">${favorites.has(r.id)?"❤️ Salvo nos favoritos":"♡ Salvar favorito"}</button><button class="pill" id="shareBtn">↗ Compartilhar</button><button class="pill" id="printBtn">🖨 Imprimir</button><button class="pill" id="shoppingBtn">🛒 Lista de compras</button></div><div class="portion"><strong>Porções:</strong><button id="minusPort" aria-label="Diminuir porções">−</button><strong>${servingsNow}</strong><button id="plusPort" aria-label="Aumentar porções">+</button><span class="muted">pessoas/unidades</span></div><h3>🧺 Ingredientes</h3><p class="muted">Marque cada item conforme separar na bancada.</p><ul class="ingredients-check">${r.ingredients.map(([name,n,unit],i)=>`<li><label><input type="checkbox" data-ingredient="${i}"><span>${esc(formatIngredient(name,n,unit,factor))}</span></label></li>`).join("")}</ul><h3>👩‍🍳 Modo de preparo</h3><div class="tip-box">💡 <strong>Antes de começar:</strong> lave as mãos, separe os utensílios e leia todas as etapas. Se for usar forno ou óleo quente, tome cuidado com queimaduras.</div><div class="cook-tools"><button type="button" id="resetChecks">↻ Desmarcar ingredientes</button><button type="button" id="showAllSteps">📋 Ver dicas de preparo</button></div>
+<div class="cook-tools">
+  <button type="button" id="cookModeBtn">👨‍🍳 Ativar modo cozinheiro</button>
+  <button type="button" id="readStepsBtn">🔊 Ler etapas</button>
+</div>
+<div class="timer-panel" aria-label="Timer de cozinha">
+  <strong>⏱ Timer:</strong><span class="timer-display" id="timerDisplay">05:00</span>
+  <button type="button" class="pill" data-minutes="5">5 min</button>
+  <button type="button" class="pill" data-minutes="10">10 min</button>
+  <button type="button" class="pill" data-minutes="15">15 min</button>
+  <button type="button" class="pill" data-minutes="30">30 min</button>
+  <button type="button" class="pill" id="timerPause">Pausar</button>
+  <button type="button" class="pill" id="timerReset">Zerar</button>
+</div>
+<div class="cook-progress" aria-label="Progresso do preparo"><span id="stepProgress"></span></div><ol id="stepsList">${r.steps.map((s,i)=>`<li><label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" data-step="${i}" style="margin-top:5px;accent-color:var(--green);width:18px;height:18px;flex-shrink:0"><span>${esc(s)}</span></label></li>`).join("")}</ol><details class="glossary">
+<summary>📘 Dicionário de cozinha para iniciantes</summary>
+<p><strong>Refogar:</strong> cozinhar rapidamente com um pouco de óleo, mexendo.</p>
+<p><strong>Dourar:</strong> deixar a superfície ganhar cor, sem queimar.</p>
+<p><strong>Preaquecer:</strong> ligar o forno antes de colocar a receita, para ele atingir a temperatura.</p>
+<p><strong>Untar:</strong> passar uma camada fina de manteiga ou óleo na forma para evitar que grude.</p>
+<p><strong>Fogo baixo:</strong> chama pequena para cozinhar devagar e reduzir o risco de queimar.</p>
+<p><strong>Incorporar:</strong> misturar até um ingrediente se juntar aos outros.</p>
+</details>
+<div class="notice"><strong>📏 Sobre as medidas:</strong> quando possível, mostramos gramas (g), quilos (kg), mililitros (ml) e litros (L). Conversões de xícaras e colheres são aproximadas, porque o peso muda conforme o ingrediente. Para maior precisão, use uma balança culinária. <br><br><strong>👨‍🍳 Dica:</strong> leia todas as etapas antes de começar, separe os ingredientes e confira o ponto durante o preparo.</div></div>`;document.getElementById("recipeModal").classList.remove("hidden");document.getElementById("closeModal").onclick=closeModal;document.getElementById("modalFav").onclick=()=>toggleFav(r.id);document.getElementById("minusPort").onclick=()=>{servingsNow=Math.max(1,servingsNow-1);renderModal()};document.getElementById("plusPort").onclick=()=>{servingsNow=Math.min(100,servingsNow+1);renderModal()};document.getElementById("shareBtn").onclick=()=>{const txt=`${r.name}\n\nIngredientes:\n${r.ingredients.map(([n,a,u])=>`- ${formatIngredient(n,a,u,factor)}`).join("\n")}\n\nModo de preparo:\n${r.steps.map((s,i)=>`${i+1}. ${s}`).join("\n")}`;if(navigator.share)navigator.share({title:r.name,text:txt}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>alert("Receita copiada para compartilhar!"));else alert(txt)};document.getElementById("printBtn").onclick=()=>window.print();
 document.getElementById("shoppingBtn").onclick=()=>{const txt=`Lista de compras — ${r.name} (${servingsNow} porções)\n\n`+r.ingredients.map(([n,a,u])=>"- "+formatIngredient(n,a,u,factor)).join("\n");if(navigator.share)navigator.share({title:"Lista de compras",text:txt}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>alert("Lista de compras copiada!")).catch(()=>alert(txt));else alert(txt)};
 document.querySelectorAll("[data-ingredient]").forEach(cb=>cb.addEventListener("change",()=>cb.closest("li").classList.toggle("checked",cb.checked)));
 document.getElementById("resetChecks").onclick=()=>{document.querySelectorAll("[data-ingredient]").forEach(cb=>{cb.checked=false;cb.closest("li").classList.remove("checked")});document.querySelectorAll("[data-step]").forEach(cb=>cb.checked=false);updateStepProgress()};
 document.querySelectorAll("[data-step]").forEach(cb=>cb.addEventListener("change",updateStepProgress));
 document.getElementById("showAllSteps").onclick=()=>{document.getElementById("stepsList").scrollIntoView({behavior:"smooth",block:"start"});};
+document.getElementById("cookModeBtn").onclick=()=>{
+  cookModeOn=!cookModeOn;document.getElementById("dialogContent").classList.toggle("cook-mode",cookModeOn);
+  document.getElementById("cookModeBtn").classList.toggle("active",cookModeOn);
+  document.getElementById("cookModeBtn").textContent=cookModeOn?"✅ Modo cozinheiro ligado":"👨‍🍳 Ativar modo cozinheiro";
+  document.getElementById("stepsList").scrollIntoView({behavior:"smooth",block:"start"});
+};
+document.getElementById("readStepsBtn").onclick=()=>{
+  if(!("speechSynthesis" in window)){alert("A leitura em voz alta não está disponível neste navegador.");return}
+  window.speechSynthesis.cancel();
+  const textToRead=currentRecipe.name+". Modo de preparo. "+currentRecipe.steps.map((s,i)=>"Etapa "+(i+1)+". "+s).join(". ");
+  const utterance=new SpeechSynthesisUtterance(textToRead);utterance.lang="pt-BR";window.speechSynthesis.speak(utterance);
+};
+document.querySelectorAll("[data-minutes]").forEach(b=>b.onclick=()=>{resetTimer(Number(b.dataset.minutes)*60);startTimer()});
+document.getElementById("timerPause").onclick=()=>{
+  if(timerInterval){stopTimer();timerPaused=true;document.getElementById("timerPause").textContent="Continuar"}
+  else if(timerPaused||timerSeconds>0){startTimer();document.getElementById("timerPause").textContent="Pausar"}
+};
+document.getElementById("timerReset").onclick=()=>{resetTimer(300);document.getElementById("timerPause").textContent="Pausar"};
+
 updateStepProgress();
 }
 function updateStepProgress(){const all=[...document.querySelectorAll("[data-step]")];const done=all.filter(cb=>cb.checked).length;const bar=document.getElementById("stepProgress");if(bar)bar.style.width=(all.length?done/all.length*100:0)+"%";}
-function closeModal(){document.getElementById("recipeModal").classList.add("hidden");currentRecipe=null}
+function closeModal(){document.getElementById("recipeModal").classList.add("hidden");currentRecipe=null;stopTimer();if("speechSynthesis" in window)window.speechSynthesis.cancel();cookModeOn=false}
 document.getElementById("favoritesToggle").onclick=()=>{onlyFavorites=!onlyFavorites;selectedCategory="Todas";document.getElementById("favoritesToggle").classList.toggle("active",onlyFavorites);renderCategories();renderRecipes()};document.getElementById("allToggle").onclick=()=>{onlyFavorites=false;quickFilter="";selectedCategory="Todas";document.getElementById("favoritesToggle").classList.remove("active");document.querySelectorAll("[data-filter]").forEach(x=>x.classList.remove("active"));document.getElementById("searchInput").value="";document.getElementById("pantryInput").value="";renderCategories();renderRecipes()};document.getElementById("searchBtn").onclick=renderRecipes;document.getElementById("searchInput").addEventListener("input",renderRecipes);
 document.getElementById("pantryBtn").onclick=renderRecipes;document.getElementById("pantryInput").addEventListener("keydown",e=>{if(e.key==="Enter")renderRecipes()});
-document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{quickFilter=quickFilter===b.dataset.filter?"":b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x.dataset.filter===quickFilter));renderRecipes()});document.getElementById("recipeModal").addEventListener("click",e=>{if(e.target.id==="recipeModal")closeModal()});document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});renderCategories();renderRecipes();
+document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{quickFilter=quickFilter===b.dataset.filter?"":b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x.dataset.filter===quickFilter));renderRecipes()});document.getElementById("recipeModal").addEventListener("click",e=>{if(e.target.id==="recipeModal")closeModal()});document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+let desiredServings = null;
+let cookModeOn = false;
+let timerSeconds = 300;
+let timerInterval = null;
+let timerPaused = false;
+function formatTimer(sec){const m=Math.floor(sec/60),s=sec%60;return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")}
+function drawTimer(){const el=document.getElementById("timerDisplay");if(el)el.textContent=formatTimer(timerSeconds)}
+function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null}}
+function startTimer(){stopTimer();timerPaused=false;timerInterval=setInterval(()=>{if(timerSeconds>0){timerSeconds--;drawTimer()}else{stopTimer();timerPaused=false;alert("⏰ Tempo encerrado! Confira o ponto da receita.")}},1000)}
+function resetTimer(seconds=300){stopTimer();timerSeconds=seconds;timerPaused=false;drawTimer()}
+
+document.getElementById("helperFind").onclick=()=>{
+  const ing=document.getElementById("helperIngredients").value.trim();
+  const t=document.getElementById("helperTime").value;
+  desiredServings=Number(document.getElementById("helperPeople").value)||2;
+  document.getElementById("searchInput").value="";
+  document.getElementById("pantryInput").value=ing;
+  quickFilter=(t==="30"?"quick":t==="60"?"under60":"");
+  document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x.dataset.filter===quickFilter));
+  onlyFavorites=false;document.getElementById("favoritesToggle").classList.remove("active");
+  selectedCategory="Todas";renderCategories();renderRecipes();
+  document.getElementById("listTitle").textContent=ing?"Receitas com o que você tem em casa":"Receitas para o seu tempo disponível";
+  document.getElementById("recipeGrid").scrollIntoView({behavior:"smooth",block:"start"});
+};
+renderCategories();renderRecipes();
 </script>
 </body>
 </html>
