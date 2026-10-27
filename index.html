@@ -888,7 +888,7 @@ const communityStatus = document.getElementById("communityStatus");
 const communityConnection = document.getElementById("communityConnection");
 
 function supabaseHeaders(extra={}) {
-  return { "apikey": SUPABASE_PUBLISHABLE_KEY, "Authorization": "Bearer " + SUPABASE_PUBLISHABLE_KEY, ...extra };
+  return { "apikey": SUPABASE_PUBLISHABLE_KEY, ...extra };
 }
 function parseJsonValue(value, fallback) {
   if (Array.isArray(value)) return value;
@@ -924,7 +924,11 @@ async function loadCommunityRecipes() {
     const response = await fetch(SUPABASE_REST + "/receitas?select=*&aprovado=eq.true&order=criado_em.desc&limit=500", {
       headers: supabaseHeaders({ "Accept": "application/json" })
     });
-    if (!response.ok) throw new Error("HTTP " + response.status);
+    if (!response.ok) {
+      let detail = "";
+      try { detail = (await response.text()).slice(0, 240); } catch (_) {}
+      throw new Error("HTTP " + response.status + (detail ? " — " + detail : ""));
+    }
     const rows = await response.json();
     const remote = rows.map(rowToRecipe).filter(r => r.name && r.ingredients.length && r.steps.length);
     const existingIds = new Set(recipes.filter(r => typeof r.id === "string" && r.id.startsWith("community-")).map(r => r.id));
@@ -941,7 +945,7 @@ async function loadCommunityRecipes() {
   }
 }
 function parseIngredientLines(text) {
-  return text.split(/\\r?\\n/).map(line => line.trim()).filter(Boolean).map(line => {
+  return text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
     const parts = line.split("|").map(part => part.trim());
     if (parts.length >= 3) {
       const amount = Number(parts[1].replace(",", "."));
@@ -960,7 +964,7 @@ document.getElementById("communityForm").addEventListener("submit", async event 
   const time = Number(data.get("time"));
   const servings = Number(data.get("servings"));
   const ingredients = parseIngredientLines(String(data.get("ingredients") || ""));
-  const steps = String(data.get("steps") || "").split(/\\r?\\n/).map(line => line.replace(/^\\s*\\d+[.)-]\\s*/, "").trim()).filter(Boolean);
+  const steps = String(data.get("steps") || "").split(/\r?\n/).map(line => line.replace(/^\\s*\\d+[.)-]\\s*/, "").trim()).filter(Boolean);
   const imageUrl = String(data.get("image") || "").trim();
   if (!title || !ingredients.length || !steps.length || !Number.isInteger(time) || time < 1 || !Number.isInteger(servings) || servings < 1) {
     communityStatus.textContent = "Confira o nome, tempo, porções, ingredientes e passos antes de enviar.";
