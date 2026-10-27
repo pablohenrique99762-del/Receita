@@ -1082,12 +1082,22 @@ externalSearchForm.addEventListener('submit',async event=>{
   event.preventDefault(); const query=externalSearchInput.value.trim(); if(!query)return;
   const button=document.getElementById('internetSearchButton'); button.disabled=true; externalRecipeResults.innerHTML=''; externalSearchStatus.textContent='Pesquisando receitas externas…';
   try{
+    // Primeiro mostra buscas em sites culinários brasileiros, com o termo original em português.
+    const ptQuery=query;
+    const ptSources=[
+      {name:'TudoGostoso',url:'https://www.google.com/search?q='+encodeURIComponent('site:tudogostoso.com.br '+ptQuery)},
+      {name:'Receitas Globo',url:'https://www.google.com/search?q='+encodeURIComponent('site:receitas.globo.com '+ptQuery)},
+      {name:'Panelinha',url:'https://www.google.com/search?q='+encodeURIComponent('site:panelinha.com.br '+ptQuery)},
+      {name:'Busca geral em português',url:'https://www.google.com/search?q='+encodeURIComponent(ptQuery+' receita brasileira')}
+    ];
+    externalRecipeResults.innerHTML='<article class="external-recipe"><div class="external-body"><h3>🇧🇷 Receitas em português</h3><p>Pesquise o termo “'+esc(ptQuery)+'” em sites brasileiros. Abra um resultado para conferir os ingredientes e o modo de preparo na fonte original.</p>'+ptSources.map(source=>'<p><a href="'+esc(source.url)+'" target="_blank" rel="noopener noreferrer">Buscar no '+esc(source.name)+' ↗</a></p>').join('')+'</div></article>';
+    externalSearchStatus.textContent='Mostrando fontes brasileiras. Também vamos consultar o catálogo internacional abaixo.';
     const translatedQuery=translateRecipeQuery(query);
     const response=await fetch('https://www.themealdb.com/api/json/v1/1/search.php?s='+encodeURIComponent(translatedQuery));
     if(!response.ok)throw new Error('HTTP '+response.status);
     const data=await response.json(); const meals=Array.isArray(data.meals)?data.meals:[];
-    if(!meals.length){externalSearchStatus.textContent='Não encontramos esse prato nessa fonte. Tente um nome mais simples (ex.: frango, bolo, peixe). A fonte externa tem mais receitas internacionais.';return;}
-    window.__externalMealResults=meals; renderExternalResults(meals); externalSearchStatus.textContent=meals.length+' receita(s) encontrada(s).';
+    if(meals.length){ window.__externalMealResults=meals; renderExternalResults(meals); externalSearchStatus.textContent='Fontes brasileiras abertas para busca e '+meals.length+' receita(s) internacional(is) encontrada(s).'; }
+    else { window.__externalMealResults=[]; externalSearchStatus.textContent='Fontes brasileiras prontas para buscar. Essa fonte internacional não encontrou um prato correspondente.'; }
   }catch(error){console.error('External recipe search error:',error);externalSearchStatus.textContent='Não foi possível consultar a fonte externa agora. Verifique a internet e tente novamente.';}
   finally{button.disabled=false;}
 });
