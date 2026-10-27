@@ -57,6 +57,17 @@ header{background:#fff;position:sticky;top:0;z-index:5;border-bottom:1px solid v
 #stepsList .step-number{display:block;font-weight:750;color:var(--green,#47745c);font-size:.92rem;margin-bottom:4px}
 #stepsList .step-text{display:block}
 .prep-intro{margin:8px 0 12px;color:var(--muted,#6b6b6b);line-height:1.5}
+
+/* Envio comunitário e conexão com Supabase */
+.community-box{margin:18px 0;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px}
+.community-box h2{margin:0 0 6px}.community-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.community-form label{display:block;font-weight:750;font-size:.9rem}.community-form input,.community-form select,.community-form textarea{width:100%;box-sizing:border-box;margin-top:5px;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff;color:var(--ink);font:inherit}
+.community-form textarea{min-height:100px;resize:vertical}.community-form .full{grid-column:1/-1}
+.community-form button{border:0;border-radius:10px;padding:12px 15px;background:var(--orange);color:#fff;font-weight:800}
+#communityStatus{margin:10px 0 0;padding:10px;border-radius:10px;background:#f4f6f2;white-space:pre-wrap;font-size:.9rem}
+.connection-status{font-size:.82rem;color:var(--muted);margin-top:6px}
+@media(max-width:600px){.community-form{grid-template-columns:1fr}.community-form .full{grid-column:auto}}
+
 </style>
 </head>
 <body>
@@ -85,6 +96,54 @@ header{background:#fff;position:sticky;top:0;z-index:5;border-bottom:1px solid v
   <p class="muted" style="margin:8px 0 0">A busca usa os ingredientes digitados para encontrar receitas que tenham pelo menos um deles. Ao abrir uma receita, ajuste as porções no botão + ou −.</p>
 </section>
 
+<section class="community-box" id="communityRecipes">
+  <h2>📝 Compartilhe sua receita</h2>
+  <p class="muted">Envie sua receita para ajudar outras pessoas. Ela será revisada antes de aparecer publicamente.</p>
+  <form id="communityForm" class="community-form">
+    <label>Nome da receita *
+      <input name="title" required maxlength="100" placeholder="Ex.: Enroladinho de salsicha">
+    </label>
+    <label>Categoria *
+      <select name="category" required>
+        <option value="Bolos e doces">Bolos e doces</option>
+        <option value="Almoço e jantar">Almoço e jantar</option>
+        <option value="Lanches e salgados">Lanches e salgados</option>
+        <option value="Pães e café da manhã">Pães e café da manhã</option>
+        <option value="Bebidas">Bebidas</option>
+        <option value="Massas de salgados, pães e bases">Massas de salgados, pães e bases</option>
+        <option value="Outras">Outras</option>
+      </select>
+    </label>
+    <label>Tempo aproximado (minutos) *
+      <input name="time" type="number" required min="1" max="1440" value="30">
+    </label>
+    <label>Porções ou unidades *
+      <input name="servings" type="number" required min="1" max="500" value="4">
+    </label>
+    <label class="full">Descrição curta
+      <input name="description" maxlength="240" placeholder="Conte como fica a receita">
+    </label>
+    <label class="full">Ingredientes * (uma linha por ingrediente)
+      <textarea name="ingredients" required placeholder="Exemplo:
+farinha de trigo | 2 | xícaras
+ovo | 1 | unidade
+sal | 1 | pitada"></textarea>
+    </label>
+    <label class="full">Modo de preparo * (um passo por linha, na ordem)
+      <textarea name="steps" required placeholder="1. Separe os ingredientes.
+2. Misture tudo conforme a receita.
+3. Cozinhe até ficar pronto."></textarea>
+    </label>
+    <label class="full">Link de uma foto (opcional)
+      <input name="image" type="url" placeholder="https://...">
+    </label>
+    <div class="full">
+      <button type="submit" id="submitCommunityRecipe">Enviar para revisão</button>
+      <div id="communityStatus" role="status" aria-live="polite">As receitas enviadas ficam pendentes até serem aprovadas.</div>
+      <div class="connection-status" id="communityConnection">Conectando ao banco de receitas…</div>
+    </div>
+  </form>
+</section>
 
 <section class="site-tools" aria-label="Ferramentas extras">
  <div class="tool-card"><h3>🧮 Conversor de medidas</h3><p>Conversões de volume. Gramas dependem do ingrediente.</p>
@@ -820,7 +879,136 @@ document.addEventListener("click",e=>{
 });
 
 document.addEventListener("change",e=>{if(e.target.matches("#stepsList input[type=checkbox]")){const checks=[...document.querySelectorAll("#stepsList input[type=checkbox]")],done=checks.filter(x=>x.checked).length;const bar=document.getElementById("recipeProgress");if(bar)bar.style.width=(checks.length?100*done/checks.length:0)+"%";}});
+
+// Supabase: chave publishable própria para uso no navegador; nunca colocar uma secret/service_role aqui.
+const SUPABASE_URL = "https://agppaxjnundfmgevcdfz.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_OyDONd6TuyY99I-sa3QUbQ_ZVUZhiPr";
+const SUPABASE_REST = SUPABASE_URL + "/rest/v1";
+const communityStatus = document.getElementById("communityStatus");
+const communityConnection = document.getElementById("communityConnection");
+
+function supabaseHeaders(extra={}) {
+  return { "apikey": SUPABASE_PUBLISHABLE_KEY, "Authorization": "Bearer " + SUPABASE_PUBLISHABLE_KEY, ...extra };
+}
+function parseJsonValue(value, fallback) {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === "object") return value;
+  if (typeof value === "string") { try { return JSON.parse(value); } catch (_) {} }
+  return fallback;
+}
+function rowToRecipe(row) {
+  const ingredientsRaw = parseJsonValue(row.ingredientes, []);
+  const stepsRaw = parseJsonValue(row.modo_preparo, []);
+  const ingredients = ingredientsRaw.map(item => {
+    if (Array.isArray(item)) return [String(item[0] || "Ingrediente"), Number(item[1] ?? 1), String(item[2] || "a gosto")];
+    if (item && typeof item === "object") return [String(item.nome || item.name || "Ingrediente"), Number(item.quantidade ?? item.amount ?? 1), String(item.unidade || item.unit || "a gosto")];
+    return [String(item), 1, "a gosto"];
+  });
+  const steps = stepsRaw.map(item => typeof item === "string" ? item : String(item.texto || item.text || item.passo || ""));
+  return {
+    id: "community-" + row.id,
+    name: String(row.titulo || "Receita da comunidade"),
+    cat: String(row.categoria || "Outras"),
+    time: Number(row.tempo_minutos || 30),
+    difficulty: "Fácil",
+    servings: Number(row.porcoes || 4),
+    desc: String(row.descricao || "Receita compartilhada pela comunidade."),
+    img: String(row.imagem_url || "").startsWith("https://") ? row.imagem_url : "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=900&q=80",
+    ingredients,
+    steps
+  };
+}
+async function loadCommunityRecipes() {
+  try {
+    communityConnection.textContent = "Buscando receitas aprovadas…";
+    const response = await fetch(SUPABASE_REST + "/receitas?select=*&aprovado=eq.true&order=criado_em.desc&limit=500", {
+      headers: supabaseHeaders({ "Accept": "application/json" })
+    });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const rows = await response.json();
+    const remote = rows.map(rowToRecipe).filter(r => r.name && r.ingredients.length && r.steps.length);
+    const existingIds = new Set(recipes.filter(r => typeof r.id === "string" && r.id.startsWith("community-")).map(r => r.id));
+    for (const r of remote) {
+      if (!existingIds.has(r.id)) recipes.push(r);
+      if (r.cat && !categories.includes(r.cat)) categories.push(r.cat);
+    }
+    renderCategories();
+    renderRecipes();
+    communityConnection.textContent = "Banco conectado. " + remote.length + " receita(s) pública(s) da comunidade carregada(s).";
+  } catch (error) {
+    communityConnection.textContent = "Não foi possível carregar as receitas da comunidade agora. As receitas que já vêm no site continuam funcionando.";
+    console.error("Supabase load error:", error);
+  }
+}
+function parseIngredientLines(text) {
+  return text.split(/\\r?\\n/).map(line => line.trim()).filter(Boolean).map(line => {
+    const parts = line.split("|").map(part => part.trim());
+    if (parts.length >= 3) {
+      const amount = Number(parts[1].replace(",", "."));
+      return [parts[0], Number.isFinite(amount) ? amount : 1, parts.slice(2).join(" | ") || "a gosto"];
+    }
+    return [line, 1, "a gosto"];
+  });
+}
+document.getElementById("communityForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = new FormData(form);
+  const title = String(data.get("title") || "").trim();
+  const description = String(data.get("description") || "").trim();
+  const category = String(data.get("category") || "Outras");
+  const time = Number(data.get("time"));
+  const servings = Number(data.get("servings"));
+  const ingredients = parseIngredientLines(String(data.get("ingredients") || ""));
+  const steps = String(data.get("steps") || "").split(/\\r?\\n/).map(line => line.replace(/^\\s*\\d+[.)-]\\s*/, "").trim()).filter(Boolean);
+  const imageUrl = String(data.get("image") || "").trim();
+  if (!title || !ingredients.length || !steps.length || !Number.isInteger(time) || time < 1 || !Number.isInteger(servings) || servings < 1) {
+    communityStatus.textContent = "Confira o nome, tempo, porções, ingredientes e passos antes de enviar.";
+    return;
+  }
+  if (imageUrl && !imageUrl.startsWith("https://")) {
+    communityStatus.textContent = "O link da foto precisa começar com https://.";
+    return;
+  }
+  const submitButton = document.getElementById("submitCommunityRecipe");
+  submitButton.disabled = true;
+  submitButton.textContent = "Enviando…";
+  communityStatus.textContent = "Enviando sua receita para revisão…";
+  try {
+    const response = await fetch(SUPABASE_REST + "/receitas", {
+      method: "POST",
+      headers: supabaseHeaders({ "Content-Type": "application/json", "Prefer": "return=minimal" }),
+      body: JSON.stringify({
+        titulo: title,
+        descricao: description || null,
+        categoria: category,
+        ingredientes: ingredients,
+        modo_preparo: steps,
+        tempo_minutos: time,
+        porcoes: servings,
+        imagem_url: imageUrl || null,
+        aprovado: false
+      })
+    });
+    if (!response.ok) {
+      let detail = "";
+      try { detail = (await response.text()).slice(0, 350); } catch (_) {}
+      throw new Error("HTTP " + response.status + (detail ? " — " + detail : ""));
+    }
+    form.reset();
+    communityStatus.textContent = "Receita enviada! Ela ficará pendente até ser aprovada e só depois aparecerá para todos.";
+    showToast("Receita enviada para revisão.");
+  } catch (error) {
+    console.error("Supabase submit error:", error);
+    communityStatus.textContent = "Não foi possível enviar. Confira a conexão e as permissões da tabela no Supabase. Se continuar, me mande o erro do console ou uma captura da tela.";
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Enviar para revisão";
+  }
+});
+
 drawPlan();drawQuick();renderCategories();renderRecipes();
+loadCommunityRecipes();
 </script>
 </body>
 </html>
